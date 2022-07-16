@@ -20,43 +20,43 @@ func GetGroupVersionResource(restMapper meta.RESTMapper, gvk schema.GroupVersion
 	return restMapping.Resource, nil
 }
 
-// gvk2GvrMapRESTMapper is a RESTMapper that will provides gvkToGVR cache for RESTMapping Method.
-type gvk2GvrMapRESTMapper struct {
+// cachedRESTMapper is a RESTMapper that will provides gvkToGVR cache for RESTMapping Method.
+type cachedRESTMapper struct {
 	restMapper meta.RESTMapper
 	gvkToGVR   sync.Map
 }
 
-func (g *gvk2GvrMapRESTMapper) KindFor(resource schema.GroupVersionResource) (schema.GroupVersionKind, error) {
+func (g *cachedRESTMapper) KindFor(resource schema.GroupVersionResource) (schema.GroupVersionKind, error) {
 	//TODO implement me
 	return g.restMapper.KindFor(resource)
 }
 
-func (g *gvk2GvrMapRESTMapper) KindsFor(resource schema.GroupVersionResource) ([]schema.GroupVersionKind, error) {
+func (g *cachedRESTMapper) KindsFor(resource schema.GroupVersionResource) ([]schema.GroupVersionKind, error) {
 	//TODO implement me
 	return g.restMapper.KindsFor(resource)
 }
 
-func (g *gvk2GvrMapRESTMapper) ResourceFor(input schema.GroupVersionResource) (schema.GroupVersionResource, error) {
+func (g *cachedRESTMapper) ResourceFor(input schema.GroupVersionResource) (schema.GroupVersionResource, error) {
 	//TODO implement me
 	return g.restMapper.ResourceFor(input)
 }
 
-func (g *gvk2GvrMapRESTMapper) ResourcesFor(input schema.GroupVersionResource) ([]schema.GroupVersionResource, error) {
+func (g *cachedRESTMapper) ResourcesFor(input schema.GroupVersionResource) ([]schema.GroupVersionResource, error) {
 	//TODO implement me
 	return g.restMapper.ResourcesFor(input)
 }
 
-func (g *gvk2GvrMapRESTMapper) RESTMappings(gk schema.GroupKind, versions ...string) ([]*meta.RESTMapping, error) {
+func (g *cachedRESTMapper) RESTMappings(gk schema.GroupKind, versions ...string) ([]*meta.RESTMapping, error) {
 	//TODO implement me
 	return g.restMapper.RESTMappings(gk, versions...)
 }
 
-func (g *gvk2GvrMapRESTMapper) ResourceSingularizer(resource string) (singular string, err error) {
+func (g *cachedRESTMapper) ResourceSingularizer(resource string) (singular string, err error) {
 	//TODO implement me
 	return g.restMapper.ResourceSingularizer(resource)
 }
 
-func (g *gvk2GvrMapRESTMapper) RESTMapping(gk schema.GroupKind, versions ...string) (*meta.RESTMapping, error) {
+func (g *cachedRESTMapper) RESTMapping(gk schema.GroupKind, versions ...string) (*meta.RESTMapping, error) {
 	if len(versions) == 1 {
 		currGVK := gk.WithVersion(versions[0])
 		value, ok := g.gvkToGVR.Load(currGVK)
@@ -74,10 +74,10 @@ func (g *gvk2GvrMapRESTMapper) RESTMapping(gk schema.GroupKind, versions ...stri
 	return g.restMapper.RESTMapping(gk, versions...)
 }
 
-// NewGvk2GvrMapRESTMapper returns a gvk2GvrMapRESTMapper for restMapper and cfg.
-// The gvk2GvrMapRESTMapper is a RESTMapper that will provides map cache for RESTMapping Method.
-func NewGvk2GvrMapRESTMapper(cfg *rest.Config, restMapper meta.RESTMapper) (meta.RESTMapper, error) {
-	newmapper := gvk2GvrMapRESTMapper{}
+// NewcachedRESTMapper returns a cachedRESTMapper for restMapper and cfg.
+// The cachedRESTMapper is a RESTMapper that will provides map cache for RESTMapping Method.
+func NewcachedRESTMapper(cfg *rest.Config, restMapper meta.RESTMapper) (meta.RESTMapper, error) {
+	newmapper := cachedRESTMapper{}
 
 	if restMapper != nil {
 		newmapper.restMapper = restMapper

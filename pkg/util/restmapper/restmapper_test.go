@@ -3,6 +3,7 @@ package restmapper
 import (
 	"testing"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/restmapper"
@@ -153,8 +154,8 @@ func BenchmarkGetGroupVersionResource(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tc := range kindTCs {
 			_, err := GetGroupVersionResource(restMapper, tc.input)
-			if err != nil {
-				b.Errorf("GetGroupVersionResource For %v Error:%s", tc.input, err)
+			if err != nil && !meta.IsNoMatchError(err) {
+				b.Errorf("GetGroupVersionResource For %v Error:%v", tc.input, err)
 			}
 		}
 	}
@@ -224,10 +225,10 @@ func BenchmarkGetGroupVersionResourceWithMap(b *testing.B) {
 
 	restMapper := restmapper.NewDiscoveryRESTMapper(resources)
 
-	mapper, err := NewGvk2GvrMapRESTMapper(nil, restMapper)
+	mapper, err := NewcachedRESTMapper(nil, restMapper)
 
 	if err != nil {
-		b.Errorf("NewGvk2GvrMapRESTMapper:%s", err.Error())
+		b.Errorf("NewcachedRESTMapper:%s", err.Error())
 	}
 
 	kindTCs := []struct {
@@ -311,8 +312,8 @@ func BenchmarkGetGroupVersionResourceWithMap(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, tc := range kindTCs {
 			_, err := GetGroupVersionResource(mapper, tc.input)
-			if err != nil {
-				b.Errorf("GetGroupVersionResource For %v Error:%s", tc.input, err)
+			if err != nil && !meta.IsNoMatchError(err) {
+				b.Errorf("GetGroupVersionResource For %v Error:%v", tc.input, err)
 			}
 		}
 	}
