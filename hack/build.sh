@@ -44,6 +44,8 @@ function build_binary_for_platform() {
   local -r arch=${platform##*/}
 
   local gopkg="${KARMADA_GO_PACKAGE}/$(util::get_target_source $target)"
+  echo "target:${target}"
+  echo "gopkg:${gopkg}"
   set -x
   CGO_ENABLED=0 GOOS=${os} GOARCH=${arch} go build \
       -ldflags "${LDFLAGS:-}" \
