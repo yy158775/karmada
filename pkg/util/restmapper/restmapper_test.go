@@ -5,7 +5,6 @@ import (
 	"sync"
 	"testing"
 
-	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -18,150 +17,277 @@ import (
 
 var fakeResources = []*metav1.APIResourceList{
 	{
-		GroupVersion: appsv1.SchemeGroupVersion.String(),
-		APIResources: []metav1.APIResource{
-			{Name: "deployments", Namespaced: true, Kind: "Deployment"},
-		},
+		GroupVersion: "apps/v1",
+		APIResources: []metav1.APIResource{{Name: "deployments", Namespaced: true, Kind: "Deployment"}},
 	},
 	{
-		GroupVersion: schema.GroupVersion{
-			Group:   "",
-			Version: "v1",
-		}.String(),
-		APIResources: []metav1.APIResource{
-			{Name: "pods", Namespaced: true, Kind: "Pod"},
-		},
+		GroupVersion: "v1",
+		APIResources: []metav1.APIResource{{Name: "pods", Namespaced: true, Kind: "Pod"}},
 	},
 	{
-		GroupVersion: schema.GroupVersion{
-			Group:   "",
-			Version: "v2",
-		}.String(),
-		APIResources: []metav1.APIResource{
-			{Name: "pods", Namespaced: true, Kind: "Pod"},
-		},
+		GroupVersion: "v2",
+		APIResources: []metav1.APIResource{{Name: "pods", Namespaced: true, Kind: "Pod"}},
 	},
 	{
-		GroupVersion: schema.GroupVersion{
-			Group:   "extensions",
-			Version: "v1beta",
-		}.String(),
-		APIResources: []metav1.APIResource{
-			{Name: "jobs", Namespaced: true, Kind: "Job"},
-		},
+		GroupVersion: "extensions/v1beta",
+		APIResources: []metav1.APIResource{{Name: "jobs", Namespaced: true, Kind: "Job"}},
 	},
 }
 
-// sum = 10 repeat = 6
-var kindTCs = []struct {
-	want  schema.GroupVersionResource
-	input schema.GroupVersionKind
+// getGVRTestCases organize the test cases for GetGroupVersionResource.
+// It can be shared by both benchmark and unit test.
+var getGVRTestCases = []struct {
+	name        string
+	inputGVK    schema.GroupVersionKind
+	expectedGVR schema.GroupVersionResource
+	expectErr   bool
 }{
 	{
-		want: schema.GroupVersionResource{
-			Version:  "v1",
-			Resource: "pods",
-		},
-		input: schema.GroupVersionKind{
+		name: "cache miss",
+		inputGVK: schema.GroupVersionKind{
+			Group:   "",
 			Version: "v1",
 			Kind:    "Pod",
 		},
-	},
-	{
-		want: schema.GroupVersionResource{
-			Version:  "v2",
+		expectedGVR: schema.GroupVersionResource{
+			Group:    "",
+			Version:  "v1",
 			Resource: "pods",
 		},
-		input: schema.GroupVersionKind{
+		expectErr: false,
+	},
+	{
+		name: "cache miss",
+		inputGVK: schema.GroupVersionKind{
+			Group:   "",
 			Version: "v2",
 			Kind:    "Pod",
 		},
+		expectedGVR: schema.GroupVersionResource{
+			Group:    "",
+			Version:  "v2",
+			Resource: "pods",
+		},
+		expectErr: false,
 	},
 	{
-		want: schema.GroupVersionResource{
-			Group:    "extensions",
-			Version:  "v1beta",
-			Resource: "jobs",
-		},
-		input: schema.GroupVersionKind{
+		name: "cache miss",
+		inputGVK: schema.GroupVersionKind{
 			Group:   "extensions",
 			Version: "v1beta",
 			Kind:    "Job",
 		},
-	},
-	{
-		want: schema.GroupVersionResource{
-			Version:  "v1",
-			Resource: "pods",
-		},
-		input: schema.GroupVersionKind{
-			Version: "v1",
-			Kind:    "Pod",
-		},
-	},
-	{
-		want: schema.GroupVersionResource{
-			Version:  "v1",
-			Resource: "pods",
-		},
-		input: schema.GroupVersionKind{
-			Version: "v1",
-			Kind:    "Pod",
-		},
-	},
-	{
-		want: schema.GroupVersionResource{
-			Version:  "v2",
-			Resource: "pods",
-		},
-		input: schema.GroupVersionKind{
-			Version: "v2",
-			Kind:    "Pod",
-		},
-	},
-	{
-		want: schema.GroupVersionResource{
-			Version:  "v2",
-			Resource: "pods",
-		},
-		input: schema.GroupVersionKind{
-			Version: "v2",
-			Kind:    "Pod",
-		},
-	},
-	{
-		want: schema.GroupVersionResource{
+		expectedGVR: schema.GroupVersionResource{
 			Group:    "extensions",
 			Version:  "v1beta",
 			Resource: "jobs",
 		},
-		input: schema.GroupVersionKind{
+		expectErr: false,
+	},
+	{
+		name: "cache hit",
+		inputGVK: schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Pod",
+		},
+		expectedGVR: schema.GroupVersionResource{
+			Group:    "",
+			Version:  "v1",
+			Resource: "pods",
+		},
+		expectErr: false,
+	},
+	{
+		name: "cache hit",
+		inputGVK: schema.GroupVersionKind{
+			Group:   "",
+			Version: "v1",
+			Kind:    "Pod",
+		},
+		expectedGVR: schema.GroupVersionResource{
+			Group:    "",
+			Version:  "v1",
+			Resource: "pods",
+		},
+		expectErr: false,
+	},
+	{
+		name: "cache hit",
+		inputGVK: schema.GroupVersionKind{
+			Group:   "",
+			Version: "v2",
+			Kind:    "Pod",
+		},
+		expectedGVR: schema.GroupVersionResource{
+			Group:    "",
+			Version:  "v2",
+			Resource: "pods",
+		},
+		expectErr: false,
+	},
+	{
+		name: "cache hit",
+		inputGVK: schema.GroupVersionKind{
+			Group:   "",
+			Version: "v2",
+			Kind:    "Pod",
+		},
+		expectedGVR: schema.GroupVersionResource{
+			Group:    "",
+			Version:  "v2",
+			Resource: "pods",
+		},
+		expectErr: false,
+	},
+	{
+		name: "cache hit",
+		inputGVK: schema.GroupVersionKind{
 			Group:   "extensions",
 			Version: "v1beta",
 			Kind:    "Job",
 		},
-	},
-	{
-		want: schema.GroupVersionResource{
+		expectedGVR: schema.GroupVersionResource{
 			Group:    "extensions",
 			Version:  "v1beta",
 			Resource: "jobs",
 		},
-		input: schema.GroupVersionKind{
+		expectErr: false,
+	},
+	{
+		name: "cache hit",
+		inputGVK: schema.GroupVersionKind{
 			Group:   "extensions",
 			Version: "v1beta",
 			Kind:    "Job",
 		},
+		expectedGVR: schema.GroupVersionResource{
+			Group:    "extensions",
+			Version:  "v1beta",
+			Resource: "jobs",
+		},
+		expectErr: false,
 	},
 	{
-		want: schema.GroupVersionResource{},
-		input: schema.GroupVersionKind{
+		name: "cache miss and invalidate the cache",
+		inputGVK: schema.GroupVersionKind{
 			Group:   "non-existence",
 			Version: "non-existence",
 			Kind:    "non-existence",
 		},
+		expectErr: true,
 	},
 }
+
+//var kindTCs = []struct {
+//	want  schema.GroupVersionResource
+//	input schema.GroupVersionKind
+//}{
+//	{
+//		want: schema.GroupVersionResource{
+//			Version:  "v1",
+//			Resource: "pods",
+//		},
+//		input: schema.GroupVersionKind{
+//			Version: "v1",
+//			Kind:    "Pod",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Version:  "v2",
+//			Resource: "pods",
+//		},
+//		input: schema.GroupVersionKind{
+//			Version: "v2",
+//			Kind:    "Pod",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Group:    "extensions",
+//			Version:  "v1beta",
+//			Resource: "jobs",
+//		},
+//		input: schema.GroupVersionKind{
+//			Group:   "extensions",
+//			Version: "v1beta",
+//			Kind:    "Job",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Version:  "v1",
+//			Resource: "pods",
+//		},
+//		input: schema.GroupVersionKind{
+//			Version: "v1",
+//			Kind:    "Pod",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Version:  "v1",
+//			Resource: "pods",
+//		},
+//		input: schema.GroupVersionKind{
+//			Version: "v1",
+//			Kind:    "Pod",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Version:  "v2",
+//			Resource: "pods",
+//		},
+//		input: schema.GroupVersionKind{
+//			Version: "v2",
+//			Kind:    "Pod",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Version:  "v2",
+//			Resource: "pods",
+//		},
+//		input: schema.GroupVersionKind{
+//			Version: "v2",
+//			Kind:    "Pod",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Group:    "extensions",
+//			Version:  "v1beta",
+//			Resource: "jobs",
+//		},
+//		input: schema.GroupVersionKind{
+//			Group:   "extensions",
+//			Version: "v1beta",
+//			Kind:    "Job",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{
+//			Group:    "extensions",
+//			Version:  "v1beta",
+//			Resource: "jobs",
+//		},
+//		input: schema.GroupVersionKind{
+//			Group:   "extensions",
+//			Version: "v1beta",
+//			Kind:    "Job",
+//		},
+//	},
+//	{
+//		want: schema.GroupVersionResource{},
+//		input: schema.GroupVersionKind{
+//			Group:   "non-existence",
+//			Version: "non-existence",
+//			Kind:    "non-existence",
+//		},
+//	},
+//}
 
 var discoveryClient = &discoveryfake.FakeDiscovery{Fake: &coretesting.Fake{Resources: fakeResources}}
 
@@ -179,11 +305,11 @@ func BenchmarkGetGroupVersionResource(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < b.N; i += len(kindTCs) {
-		for _, tc := range kindTCs {
-			_, err := GetGroupVersionResource(mapper, tc.input)
-			if err != nil && !meta.IsNoMatchError(err) {
-				b.Errorf("GetGroupVersionResource For %v Error:%v", tc.input, err)
+	for i := 0; i < b.N; i += 1 {
+		for _, tc := range getGVRTestCases {
+			_, err := GetGroupVersionResource(mapper, tc.inputGVK)
+			if err != nil && !tc.expectErr {
+				b.Errorf("GetGroupVersionResource For %v Error:%v", tc.inputGVK, err)
 			}
 		}
 	}
@@ -208,11 +334,11 @@ func BenchmarkGetGroupVersionResourceWithCache(b *testing.B) {
 
 	cachedmapper.restMapper = mapper
 
-	for i := 0; i < b.N; i += len(kindTCs) {
-		for _, tc := range kindTCs {
-			_, err := GetGroupVersionResource(cachedmapper, tc.input)
-			if err != nil && !meta.IsNoMatchError(err) {
-				b.Errorf("GetGroupVersionResource For %v Error:%v", tc.input, err)
+	for i := 0; i < b.N; i += 1 {
+		for _, tc := range getGVRTestCases {
+			_, err := GetGroupVersionResource(cachedmapper, tc.inputGVK)
+			if err != nil && !tc.expectErr {
+				b.Errorf("GetGroupVersionResource For %v Error:%v", tc.inputGVK, err)
 			}
 		}
 	}
@@ -237,35 +363,35 @@ func TestGetGroupVersionResourceWithCache(t *testing.T) {
 
 	cachedmapper.restMapper = mapper
 
-	//one test
-	for _, tc := range kindTCs[:9] {
-		got, err := GetGroupVersionResource(cachedmapper, tc.input)
-		if err != nil {
-			t.Errorf("GetGroupVersionResource (%#v) unexpected error: %v", tc.input, err)
+	//test
+	for _, tc := range getGVRTestCases[:9] {
+		got, err := GetGroupVersionResource(cachedmapper, tc.inputGVK)
+		if err != nil && !tc.expectErr {
+			t.Errorf("GetGroupVersionResource (%#v) unexpected error: %v", tc.inputGVK, err)
 			continue
 		}
 
-		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("GetGroupVersionResource(%#v) = %#v, want %#v", tc.input, got, tc.want)
+		if !reflect.DeepEqual(got, tc.expectedGVR) {
+			t.Errorf("GetGroupVersionResource(%#v) = %#v, want %#v", tc.inputGVK, got, tc.expectedGVR)
 		}
 	}
 
 	//invalidate cache
-	_, err = GetGroupVersionResource(cachedmapper, kindTCs[9].input)
+	_, err = GetGroupVersionResource(cachedmapper, getGVRTestCases[9].inputGVK)
 	if !meta.IsNoMatchError(err) {
-		t.Errorf("GetGroupVersionResource (%#v) unexpected error: %v", kindTCs[9].input, err)
+		t.Errorf("GetGroupVersionResource (%#v) unexpected error: %v", getGVRTestCases[9].inputGVK, err)
 	}
 
 	//one more test
-	for _, tc := range kindTCs[:9] {
-		got, err := GetGroupVersionResource(cachedmapper, tc.input)
+	for _, tc := range getGVRTestCases[:9] {
+		got, err := GetGroupVersionResource(cachedmapper, tc.inputGVK)
 		if err != nil {
-			t.Errorf("GetGroupVersionResource (%#v) unexpected error: %v", tc.input, err)
+			t.Errorf("GetGroupVersionResource (%#v) unexpected error: %v", tc.inputGVK, err)
 			continue
 		}
 
-		if !reflect.DeepEqual(got, tc.want) {
-			t.Errorf("GetGroupVersionResource(%#v) = %#v, want %#v", tc.input, got, tc.want)
+		if !reflect.DeepEqual(got, tc.expectedGVR) {
+			t.Errorf("GetGroupVersionResource(%#v) = %#v, want %#v", tc.inputGVK, got, tc.expectedGVR)
 		}
 	}
 }

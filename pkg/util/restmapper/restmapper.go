@@ -105,3 +105,9 @@ func NewcachedRESTMapper(cfg *rest.Config, restMapper meta.RESTMapper) (meta.RES
 	newmapper.restMapper = restMapper
 	return &newmapper, nil
 }
+
+// MapperProvider is a wrapper of cachedRESTMapper which is typically used
+// to generate customized RESTMapper for controller-runtime framework.
+func MapperProvider(c *rest.Config) (meta.RESTMapper, error) {
+	return NewcachedRESTMapper(c, nil)
+}
