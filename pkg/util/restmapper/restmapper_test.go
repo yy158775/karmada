@@ -229,7 +229,7 @@ func BenchmarkGetGroupVersionResource(b *testing.B) {
 		b.Error(err)
 	}
 
-	for i := 0; i < b.N; i += 1 {
+	for i := 0; i < b.N; i++ {
 		for _, tc := range getGVRTestCases {
 			_, err := GetGroupVersionResource(mapper, tc.inputGVK)
 			if err != nil && !tc.expectErr {
@@ -258,7 +258,7 @@ func BenchmarkGetGroupVersionResourceWithCache(b *testing.B) {
 
 	cachedmapper.restMapper = mapper
 
-	for i := 0; i < b.N; i += 1 {
+	for i := 0; i < b.N; i++ {
 		for _, tc := range getGVRTestCases {
 			_, err := GetGroupVersionResource(cachedmapper, tc.inputGVK)
 			if err != nil && !tc.expectErr {
