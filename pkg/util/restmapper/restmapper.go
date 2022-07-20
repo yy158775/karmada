@@ -106,6 +106,7 @@ func NewCachedRESTMapper(cfg *rest.Config, underlyingMapper meta.RESTMapper) (me
 
 	underlyingMapper, err = apiutil.NewDynamicRESTMapper(cfg, option)
 	if err != nil {
+		fmt.Println("a")
 		return nil, err
 	}
 	cachedMapper.restMapper = underlyingMapper
