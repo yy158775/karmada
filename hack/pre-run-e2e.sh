@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+echo "lsof:"
+lsof | wc -l
+
 echo "ulimit:"
 ulimit -n
 echo "all fd:"
