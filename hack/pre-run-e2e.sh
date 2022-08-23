@@ -5,6 +5,8 @@ apt install lsof
 # echo "lsof:"
 # lsof | wc -l
 
+ulimit -n 16000
+
 echo "ulimit:"
 ulimit -n
 echo "all fd:"
