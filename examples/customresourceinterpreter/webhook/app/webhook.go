@@ -87,8 +87,13 @@ func Run(ctx context.Context, opts *options.Options) error {
 
 	// blocks until the context is done.
 	if err := hookManager.Start(ctx); err != nil {
-		klog.Errorf("webhook server exits unexpectedly: %v", err)
-		return err
+		klog.Info("Start again\n")
+
+		if err := hookManager.Start(ctx); err != nil {
+			klog.Errorf("webhook server exits unexpectedly: %v", err)
+			return err
+		}
+
 	}
 
 	// never reach here

@@ -382,9 +382,6 @@ function util:wait_cluster_ready() {
 function util::kubectl_with_retry() {
     local ret=0
     
-    echo "lsof:"
-    lsof | wc -l
-
     echo "ulimit:"
     ulimit -n
     echo "all fd:"
