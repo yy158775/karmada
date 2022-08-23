@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+echo "ulimit:"
+ulimit -n
+echo "all fd:"
+cat /proc/sys/fs/file-nr
+
 set -o errexit
 set -o nounset
 set -o pipefail
@@ -59,6 +64,11 @@ data:
       addresses:
       - ${interpreter_webhook_example_service_external_ip_address}-${interpreter_webhook_example_service_external_ip_address}
 EOF
+
+echo "ulimit:"
+ulimt -n
+echo "all fd:"
+cat /proc/sys/fs/file-nr
 
 # deploy interpreter webhook example in karmada-host
 kubectl apply -f "${REPO_ROOT}"/examples/customresourceinterpreter/karmada-interpreter-webhook-example.yaml
