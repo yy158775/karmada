@@ -66,7 +66,7 @@ data:
 EOF
 
 echo "ulimit:"
-ulimt -n
+ulimit -n
 echo "all fd:"
 cat /proc/sys/fs/file-nr
 
