@@ -376,6 +376,12 @@ function util:wait_cluster_ready() {
 # tolerate kubectl command failure that may happen before the pod is created by  StatefulSet/Deployment.
 function util::kubectl_with_retry() {
     local ret=0
+    
+    echo "ulimit:"
+    ulimt -n
+    echo "all fd:"
+    cat /proc/sys/fs/file-nr
+    
     for i in {1..10}; do
         kubectl "$@"
         ret=$?
