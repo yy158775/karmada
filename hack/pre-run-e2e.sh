@@ -47,6 +47,14 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manif
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.12.1/manifests/metallb.yaml
 util::wait_pod_ready metallb metallb-system
 
+echo "ulimit:"
+ulimit -n
+echo "all fd:"
+cat /proc/sys/fs/file-nr
+
+echo "ulimit -a"
+ulimit -a
+
 # Use x.x.x.6 IP address, which is the same CIDR with the node address of the Kind cluster,
 # as the loadBalancer service address of component karmada-interpreter-webhook-example.
 interpreter_webhook_example_service_external_ip_prefix=$(echo $(util::get_apiserver_ip_from_kubeconfig "${HOST_CLUSTER_NAME}") | awk -F. '{printf "%s.%s.%s",$1,$2,$3}')
