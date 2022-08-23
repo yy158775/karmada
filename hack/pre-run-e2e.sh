@@ -2,6 +2,8 @@
 apt update
 apt install lsof
 
+ulimit -n 655360
+
 echo "lsof:"
 lsof | wc -l
 
