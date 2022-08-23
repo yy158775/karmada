@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+apt update
+apt install lsof
+
 echo "lsof:"
 lsof | wc -l
 
