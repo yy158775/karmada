@@ -4,6 +4,9 @@ ulimit -n
 echo "all fd:"
 cat /proc/sys/fs/file-nr
 
+echo "ulimit -a"
+ulimit -a
+
 set -o errexit
 set -o nounset
 set -o pipefail

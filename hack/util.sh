@@ -383,7 +383,7 @@ function util::kubectl_with_retry() {
     local ret=0
     
     echo "ulimit:"
-    uilimt -n
+    ulimit -n
     echo "all fd:"
     cat /proc/sys/fs/file-nr
     
