@@ -320,6 +320,11 @@ function util::wait_file_exist() {
 function util::wait_pod_ready() {
     local pod_label=$1
     local pod_namespace=$2
+    
+    echo "ulimit:"
+    ulimit -n
+    echo "all fd:"
+    cat /proc/sys/fs/file-nr
 
     echo "wait the $pod_label ready..."
     set +e
