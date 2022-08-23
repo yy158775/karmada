@@ -377,6 +377,8 @@ function util:wait_cluster_ready() {
 function util::kubectl_with_retry() {
     local ret=0
     for i in {1..10}; do
+        ulimt -n
+        cat /proc/sys/fs/file-nr
         kubectl "$@"
         ret=$?
         if [[ ${ret} -ne 0 ]]; then
