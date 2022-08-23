@@ -5,7 +5,7 @@ apt install lsof
 # echo "lsof:"
 # lsof | wc -l
 
-ulimit -n 15000
+ulimit -n 1000
 
 echo "ulimit:"
 ulimit -n
