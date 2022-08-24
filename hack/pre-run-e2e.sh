@@ -8,9 +8,9 @@ sudo sysctl fs.inotify.max_user_watches=655360
 
 sudo sysctl fs.inotify.max_user_instances=1280
 
-sysctl fs.inotify.max_user_watches=655360
+# sysctl fs.inotify.max_user_watches=655360
 
-sysctl fs.inotify.max_user_instances=1280
+# sysctl fs.inotify.max_user_instances=1280
 
 echo "watches:"
 sysctl fs.inotify.max_user_watches
