@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -11,11 +12,14 @@ import (
 	"k8s.io/component-base/term"
 	"k8s.io/klog/v2"
 	controllerruntime "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	"github.com/karmada-io/karmada/examples/customresourceinterpreter/webhook/app/options"
 	"github.com/karmada-io/karmada/pkg/sharedcli"
 	"github.com/karmada-io/karmada/pkg/sharedcli/klogflag"
+	"github.com/karmada-io/karmada/pkg/util/gclient"
 	"github.com/karmada-io/karmada/pkg/version/sharedcommand"
+	"github.com/karmada-io/karmada/pkg/webhook/interpreter"
 )
 
 // NewWebhookCommand creates a *cobra.Command object with default parameters
@@ -76,10 +80,10 @@ func Run(ctx context.Context, opts *options.Options) error {
 		return err
 	}
 
-	//klog.Info("registering webhooks to the webhook server")
-	//hookServer := hookManager.GetWebhookServer()
-	//hookServer.Register("/interpreter-workload", interpreter.NewWebhook(&workloadInterpreter{}, interpreter.NewDecoder(gclient.NewSchema())))
-	//hookServer.WebhookMux.Handle("/readyz/", http.StripPrefix("/readyz/", &healthz.Handler{}))
+	klog.Info("registering webhooks to the webhook server")
+	hookServer := hookManager.GetWebhookServer()
+	hookServer.Register("/interpreter-workload", interpreter.NewWebhook(&workloadInterpreter{}, interpreter.NewDecoder(gclient.NewSchema())))
+	hookServer.WebhookMux.Handle("/readyz/", http.StripPrefix("/readyz/", &healthz.Handler{}))
 
 	// blocks until the context is done.
 	if err := hookManager.Start(ctx); err != nil {
