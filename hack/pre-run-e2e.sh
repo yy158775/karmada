@@ -12,6 +12,11 @@ sysctl fs.inotify.max_user_watches=655360
 
 sysctl fs.inotify.max_user_instances=1280
 
+echo "watches:"
+sysctl fs.inotify.max_user_watches
+echo "instances:"
+sysctl fs.inotify.max_user_instances
+
 # echo "lsof:"
 # lsof | wc -l
 
