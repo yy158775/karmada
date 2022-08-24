@@ -390,15 +390,6 @@ function util::kubectl_with_retry() {
     for i in {1..10}; do
         kubectl "$@"
         ret=$?
-        
-        echo "lsof:"
-        lsof | wc -l
-        
-        echo "ulimit:"
-        ulimit -n
-        echo "all fd:"
-        cat /proc/sys/fs/file-nr
-
         if [[ ${ret} -ne 0 ]]; then
             echo "kubectl $@ failed, retrying(${i} times)"
             sleep 1
