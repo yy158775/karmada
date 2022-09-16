@@ -76,7 +76,7 @@ func (i *customResourceInterpreterImpl) Start(ctx context.Context) (err error) {
 	i.defaultInterpreter = defaultinterpreter.NewDefaultInterpreter()
 
 	i.informer.Start()
-	<-ctx.Done()
+	//<-ctx.Done()
 	klog.Infof("Stopped as stopCh closed.")
 	return nil
 }

@@ -141,7 +141,7 @@ func (d *ResourceDetector) Start(ctx context.Context) error {
 	d.Processor.Run(d.ConcurrentResourceTemplateSyncs, d.stopCh)
 	go d.discoverResources(30 * time.Second)
 
-	<-d.stopCh
+	//<-d.stopCh
 	klog.Infof("Stopped as stopCh closed.")
 	return nil
 }
